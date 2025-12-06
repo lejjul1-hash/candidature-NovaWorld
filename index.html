@@ -2,70 +2,85 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Candidature Staff — Glast</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="container">
+<header class="header">
+    <h2>Système de Candidature Glast</h2>
 
-    <h1 class="title">🔥 Bienvenue sur le système de candidature Staff Glast</h1>
+    <!-- 🔥 BOUTON ADMIN -->
+    <button id="adminBtn" class="admin-button">Admin</button>
+</header>
 
-    <!-- PAGE 1 -->
-    <div id="page1" class="card">
-        <h2>Présentation IRL</h2>
+<!-- 🔐 POPUP ADMIN -->
+<div id="adminPopup" class="admin-popup">
+    <div class="admin-box">
+        <h3>Accès Admin</h3>
+        <input id="adminCode" placeholder="Code admin">
+        <button id="adminLogin">Entrer</button>
+        <button id="adminClose">Fermer</button>
+    </div>
+</div>
 
-        <label>Votre Pseudo Discord</label>
-        <input id="pseudo" placeholder="Ex : !Glast#0000">
+<!-- 📝 PAGE CANDIDATURE -->
+<div id="page1" class="page active">
+    <h3>Présentation IRL</h3>
 
-        <label>Quel est votre prénom ?</label>
-        <input id="prenom" placeholder="Ex : Nathan">
+    <label>Pseudo Discord :</label>
+    <input id="pseudo">
 
-        <label>Quel est votre âge ?</label>
-        <input id="age" placeholder="Ex : 16">
+    <label>Prénom :</label>
+    <input id="prenom">
 
-        <label>Pouvez-vous nous dire vos disponibilités ?</label>
-        <textarea id="dispo" placeholder="Ex : Tous les soirs / Week-end etc..."></textarea>
+    <label>Âge :</label>
+    <input id="age">
 
-        <button id="nextBtn" class="btn">Suivant →</button>
+    <label>Disponibilités :</label>
+    <input id="dispo">
+
+    <button id="nextBtn" class="btn">Suivant</button>
+</div>
+
+<!-- 📝 PAGE 2 -->
+<div id="page2" class="page">
+    <h3>Administration</h3>
+
+    <label>Poste souhaité :</label>
+    <div>
+        <label><input type="radio" name="poste" value="Staff"> 🔫 Staff</label><br>
+        <label><input type="radio" name="poste" value="Community Manager"> 🛡️ Community Manager</label>
     </div>
 
-    <!-- PAGE 2 -->
-    <div id="page2" class="card" style="display:none;">
-        <h2>Administration</h2>
+    <label>Motivations :</label>
+    <textarea id="motive"></textarea>
 
-        <label>Dans quelle catégorie du staff souhaitez-vous aller ?</label>
-        <div class="radio-group">
-            <label><input type="radio" name="poste" value="Staff"> 🔫 Staff (OPEN)</label>
-            <label><input type="radio" name="poste" value="Community Manager"> 🛡️ Community Manager (OPEN)</label>
-        </div>
+    <label>Pourquoi vous ? :</label>
+    <textarea id="pourquoi"></textarea>
 
-        <label>Quelles sont vos motivations ?</label>
-        <textarea id="motive"></textarea>
+    <label>Qualités :</label>
+    <textarea id="qualites"></textarea>
 
-        <label>Pourquoi vous et pas un autre ?</label>
-        <textarea id="pourquoi"></textarea>
+    <label>Définition du rôle :</label>
+    <textarea id="definition"></textarea>
 
-        <label>Qualités (Minimum 3)</label>
-        <textarea id="qualites"></textarea>
+    <label>Expérience :</label>
+    <textarea id="experience"></textarea>
 
-        <label>Qu'est-ce qu'un Modérateur / Community Manager ?</label>
-        <textarea id="definition"></textarea>
+    <label>Autre :</label>
+    <textarea id="autre"></textarea>
 
-        <label>Expériences dans le domaine choisi</label>
-        <textarea id="experience"></textarea>
+    <button id="backBtn" class="btn-secondary">Retour</button>
+    <button id="sendBtn" class="btn">Envoyer</button>
+</div>
 
-        <label>Avez-vous quelque chose à ajouter ?</label>
-        <textarea id="autre"></textarea>
-
-        <div class="btns">
-            <button id="backBtn" class="btn-secondary">← Retour</button>
-            <button id="sendBtn" class="btn">Envoyer ✅</button>
-        </div>
-    </div>
-
+<!-- 📄 PAGE ADMIN -->
+<div id="adminPanel" class="admin-panel">
+    <h2>📂 Candidatures envoyées</h2>
+    <div id="adminList"></div>
 </div>
 
 <script src="script.js"></script>
