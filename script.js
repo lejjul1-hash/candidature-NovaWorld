@@ -1,96 +1,117 @@
-// ==========================================================
-//  CONFIG
-// ==========================================================
+// CONFIG
 const WEBHOOK_URL = "https://discord.com/api/webhooks/1447005556635209899/tb29lQPMnF47DCR1w2BqQzXujui3qYhEVsY45GhJ9726gvlNfhTQ5cWSuwMXNZGHjgCy";
-const ROLE_ID = "1446471808743243987"; // rôle staff à ping
+const ROLE_ID = "1446471808743243987";
+const ADMIN_CODE = "Glastontop1234";
+const WHITELIST_IP = "91.174.237.40";
 
-// ==========================================================
-//  ANTI-SPAM 24H
-// ==========================================================
+let userIP = "";
+
+// ======================= GET IP =======================
+fetch("https://api.ipify.org?format=json")
+.then(r => r.json())
+.then(d => userIP = d.ip);
+
+// ======================= ANTI SPAM 24H =======================
 function canSend() {
-    const last = localStorage.getItem("lastSendTime");
+    if (userIP === WHITELIST_IP) return true;
+
+    const last = localStorage.getItem("lastSend");
     if (!last) return true;
 
-    const elapsed = Date.now() - Number(last);
-    return elapsed >= 24 * 60 * 60 * 1000;
+    return (Date.now() - last) > 86400000;
 }
 
-function timeLeft() {
-    const last = Number(localStorage.getItem("lastSendTime"));
-    const remaining = (24 * 60 * 60 * 1000) - (Date.now() - last);
-
-    const hours = Math.floor(remaining / 3600000);
-    const minutes = Math.floor((remaining % 3600000) / 60000);
-
-    return `${hours}h ${minutes}min`;
-}
-
-// ==========================================================
-//  PAGE SWITCH (Suivant / Retour)
-// ==========================================================
-document.getElementById("nextBtn").onclick = () => {
-
-    if (!canSend()) {
-        alert("❗ Vous devez attendre encore " + timeLeft());
-        return;
-    }
-
-    page1.style.display = "none";
-    page2.style.display = "block";
+// ======================= PAGE SWITCH =======================
+nextBtn.onclick = () => {
+    if (!canSend()) return alert("❗ Attendez 24h avant de renvoyer une candidature.");
+    page1.classList.remove("active");
+    page2.classList.add("active");
 };
 
-document.getElementById("backBtn").onclick = () => {
-    page2.style.display = "none";
-    page1.style.display = "block";
+backBtn.onclick = () => {
+    page2.classList.remove("active");
+    page1.classList.add("active");
 };
 
-// ==========================================================
-//  ENVOI AU WEBHOOK
-// ==========================================================
-document.getElementById("sendBtn").onclick = () => {
+// ======================= ENVOI =======================
+sendBtn.onclick = () => {
 
-    if (!canSend()) {
-        alert("⛔ Vous devez attendre encore " + timeLeft());
-        return;
-    }
+    if (!canSend()) return alert("⛔ Vous devez attendre 24h.");
 
-    // Récupération valeurs
     const poste = document.querySelector("input[name='poste']:checked");
 
-    const payload = {
-        content: `<@&${ROLE_ID}>`,  // ⭐ PING DU RÔLE FONCTIONNEL ICI ⭐
+    const embed = {
+        username: "Candidature Glast",
+        content: `<@&${ROLE_ID}>`,
         embeds: [{
-            title: "📨 Nouvelle Candidature Staff",
+            title: "📨 Nouvelle Candidature — Glast",
             color: 0xff0000,
             fields: [
-                { name: "Pseudo Discord", value: pseudo.value || "Non renseigné" },
-                { name: "Prénom", value: prenom.value || "Non renseigné" },
-                { name: "Âge", value: age.value || "Non renseigné" },
-                { name: "Disponibilités", value: dispo.value || "Non renseigné" },
-                { name: "Poste souhaité", value: poste ? poste.value : "Non choisi" },
-                { name: "Motivations", value: motive.value || "Non renseigné" },
-                { name: "Pourquoi vous ?", value: pourquoi.value || "Non renseigné" },
-                { name: "Qualités", value: qualites.value || "Non renseigné" },
-                { name: "Définition du rôle", value: definition.value || "Non renseigné" },
-                { name: "Expérience", value: experience.value || "Non renseigné" },
-                { name: "Autre", value: autre.value || "Aucun" }
+                { name: "👤 Pseudo", value: pseudo.value },
+                { name: "📛 Prénom", value: prenom.value },
+                { name: "🎂 Âge", value: age.value },
+                { name: "⏰ Disponibilités", value: dispo.value },
+                { name: "🎯 Poste souhaité", value: poste ? poste.value : "Non choisi" },
+                { name: "🔥 Motivations", value: motive.value },
+                { name: "⭐ Pourquoi lui ?", value: pourquoi.value },
+                { name: "💠 Qualités", value: qualites.value },
+                { name: "📘 Définition du rôle", value: definition.value },
+                { name: "🛠️ Expérience", value: experience.value },
+                { name: "➕ Autre", value: autre.value },
+                { name: "🌍 IP", value: userIP }
             ]
         }]
     };
 
-    // Envoi Webhook
     fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-    .then(() => {
-        // Sauvegarde ANTI-SPAM 24H
-        localStorage.setItem("lastSendTime", Date.now().toString());
-
-        alert("✅ Votre candidature a bien été envoyée !");
-    })
-    .catch(() => {
-        alert("❗ Erreur d'envoi !");
+        body: JSON.stringify(embed)
     });
+
+    // Sauvegarde locale
+    localStorage.setItem("lastSend", Date.now());
+    saveCandidature(embed);
+
+    alert("✅ Candidature envoyée !");
 };
+
+// ======================= STOCKAGE ADMIN =======================
+function saveCandidature(data) {
+    let list = JSON.parse(localStorage.getItem("candidatures") || "[]");
+    list.push(data);
+    localStorage.setItem("candidatures", JSON.stringify(list));
+}
+
+// ======================= ADMIN ACCESS =======================
+adminBtn.onclick = () => {
+    adminPopup.style.display = "flex";
+};
+
+adminClose.onclick = () => {
+    adminPopup.style.display = "none";
+};
+
+adminLogin.onclick = () => {
+    if (adminCode.value === ADMIN_CODE) {
+        adminPopup.style.display = "none";
+        loadAdminPanel();
+        adminPanel.style.display = "block";
+    } else {
+        alert("❌ Code incorrect.");
+    }
+};
+
+// ======================= LOAD ADMIN PANEL =======================
+function loadAdminPanel() {
+    const list = JSON.parse(localStorage.getItem("candidatures") || "[]");
+
+    adminList.innerHTML = list.map(c => `
+        <div class="candidature">
+            <strong>${c.embeds[0].fields[0].value}</strong><br>
+            Poste : ${c.embeds[0].fields[4].value}<br>
+            IP : ${c.embeds[0].fields[11].value}<br><br>
+            <pre>${JSON.stringify(c, null, 2)}</pre>
+        </div>
+    `).join("");
+}
