@@ -1,13 +1,30 @@
-// ==========================
-// 🔥 ANTI SPAM 24H
-// ==========================
-const lastSent = localStorage.getItem("lastSend");
+// ID DU RÔLE À PING
+const ROLE_ID = "1446471808743243987";
 
-if (lastSent) {
-    const diff = Date.now() - Number(lastSent);
-    if (diff < 24 * 60 * 60 * 1000) {
-        alert("❗ Vous avez déjà envoyé une candidature. Vous devez attendre 24h.");
-    }
+// Webhook
+const WEBHOOK = "https://discord.com/api/webhooks/1447005556635209899/tb29lQPMnF47DCR1w2BqQzXujui3qYhEVsY45GhJ9726gvlNfhTQ5cWSuwMXNZGHjgCy";
+
+// ==========================
+// ⏳ ANTI-SPAM 24H
+// ==========================
+function canSendApplication() {
+    const last = localStorage.getItem("lastSend");
+    if (!last) return true; // jamais envoyé → OK
+
+    const diff = Date.now() - Number(last);
+    const hours = 24 * 60 * 60 * 1000;
+
+    return diff >= hours; // true = OK, false = trop tôt
+}
+
+function getRemainingTime() {
+    const last = Number(localStorage.getItem("lastSend"));
+    const remaining = (24 * 60 * 60 * 1000) - (Date.now() - last);
+
+    const h = Math.floor(remaining / (1000*60*60));
+    const m = Math.floor((remaining % (1000*60*60)) / (1000*60));
+
+    return `${h}h ${m}min`;
 }
 
 // ==========================
@@ -15,37 +32,49 @@ if (lastSent) {
 // ==========================
 document.getElementById("nextBtn").addEventListener("click", () => {
 
+    if (!canSendApplication()) {
+        alert("❗ Vous devez attendre encore : " + getRemainingTime());
+        return;
+    }
+
     if (
-        document.getElementById("pseudo").value.trim() === "" ||
-        document.getElementById("age").value.trim() === ""
+        pseudo.value.trim() === "" ||
+        age.value.trim() === ""
     ) {
         alert("Veuillez remplir au minimum PSEUDO + ÂGE.");
         return;
     }
 
-    document.getElementById("page1").style.display = "none";
-    document.getElementById("page2").style.display = "block";
+    page1.style.display = "none";
+    page2.style.display = "block";
 });
 
 // ==========================
-// RETOUR PAGE 1
+// RETOUR
 // ==========================
-document.getElementById("backBtn").addEventListener("click", () => {
-    document.getElementById("page1").style.display = "block";
-    document.getElementById("page2").style.display = "none";
+backBtn.addEventListener("click", () => {
+    page1.style.display = "block";
+    page2.style.display = "none";
 });
 
 // ==========================
-// ENVOI WEBHOOK
+// 📤 ENVOI AU WEBHOOK
 // ==========================
-document.getElementById("sendBtn").addEventListener("click", () => {
+sendBtn.addEventListener("click", () => {
+
+    if (!canSendApplication()) {
+        alert("❗ Vous devez attendre encore : " + getRemainingTime());
+        return;
+    }
+
+    const poste = document.querySelector("input[name='poste']:checked");
 
     const data = {
         pseudo: pseudo.value,
         prenom: prenom.value,
         age: age.value,
         dispo: dispo.value,
-        poste: document.querySelector("input[name='poste']:checked")?.value || "Non précisé",
+        poste: poste ? poste.value : "Non choisi",
         motive: motive.value,
         pourquoi: pourquoi.value,
         qualites: qualites.value,
@@ -54,21 +83,22 @@ document.getElementById("sendBtn").addEventListener("click", () => {
         autre: autre.value
     };
 
-    const webhook = "https://discord.com/api/webhooks/1447005556635209899/tb29lQPMnF47DCR1w2BqQzXujui3qYhEVsY45GhJ9726gvlNfhTQ5cWSuwMXNZGHjgCy";
+    const embed = {
+        content: `<@&${ROLE_ID}>`, // PING DU RÔLE 🔥
+        embeds: [{
+            title: "📩 Nouvelle Candidature Staff",
+            color: 0xff0000,
+            fields: Object.keys(data).map(k => ({
+                name: k.charAt(0).toUpperCase() + k.slice(1),
+                value: data[k] || "Non rempli"
+            }))
+        }]
+    };
 
-    fetch(webhook, {
+    fetch(WEBHOOK, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            embeds: [{
-                title: "📩 Nouvelle Candidature Staff",
-                color: 0xff0000,
-                fields: Object.keys(data).map(k => ({
-                    name: k,
-                    value: data[k] || "Non rempli"
-                }))
-            }]
-        })
+        body: JSON.stringify(embed)
     });
 
     // Sauvegarde anti-spam 24h
