@@ -144,3 +144,4 @@ function clearAll(){
     adminPanel.innerHTML = "<p style='color:#ff4444;font-weight:700'>Toutes les candidatures ont été supprimées.</p>";
 }
 
+
