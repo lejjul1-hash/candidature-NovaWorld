@@ -1,114 +1,181 @@
-const WEBHOOK = "https://discord.com/api/webhooks/1447005556635209899/tb29lQPMnF47DCR1w2BqQzXujui3qYhEVsY45GhJ9726gvlNfhTQ5cWSuwMXNZGHjgCy";
+// ===============================
+// CONFIG
+// ===============================
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1447005556635209899/tb29lQPMnF47DCR1w2BqQzXujui3qYhEVsY45GhJ9726gvlNfhTQ5cWSuwMXNZGHjgCy";
+const ROLE_ID = "1446471808743243987";
 const ADMIN_CODE = "Glastontop1234";
-const WL_IP = "91.174.237.40";   // ignore 24h
+const IP_WHITELIST = "91.174.237.40";
 
-// ---- Changer Page ----
-function gotoPage2() {
-    document.getElementById("page1").style.display = "none";
-    document.getElementById("page2").style.display = "block";
+let step = 1;
+showStep(step);
+
+// ===============================
+// PAGE SUIVANTE / PRECEDENTE
+// ===============================
+function showStep(n) {
+    document.getElementById("step1").style.display = n === 1 ? "block" : "none";
+    document.getElementById("step2").style.display = n === 2 ? "block" : "none";
 }
 
-function gotoPage1() {
-    document.getElementById("page1").style.display = "block";
-    document.getElementById("page2").style.display = "none";
+function nextStep() { step = 2; showStep(step); }
+function prevStep() { step = 1; showStep(step); }
+
+// ===============================
+// GET IP
+// ===============================
+async function getIP() {
+    try {
+        const r = await fetch("https://api.ipify.org?format=json");
+        const j = await r.json();
+        return j.ip;
+    } catch {
+        return "IP-ERR";
+    }
 }
 
-// ---- SYSTEME ADMIN ----
-function openAdmin() {
-    let code = prompt("Code Admin :");
+// ===============================
+// COOLDOWN 24H
+// ===============================
+async function canSend(ip) {
+    if (ip === IP_WHITELIST) return true;
 
-    if (code !== ADMIN_CODE) return alert("Code invalide");
+    const last = localStorage.getItem("lastSent");
+    if (!last) return true;
 
-    document.getElementById("adminPanel").style.display = "block";
-
-    let list = JSON.parse(localStorage.getItem("candidatures") || "[]");
-    let html = "";
-
-    list.forEach(c => {
-        html += `
-        <div class="card" style="margin-top:10px;">
-            <b>${c.discord}</b><br>
-            IP : ${c.ip}<br>
-            Catégorie : ${c.categorie}<br><br>
-            <b>Motivations :</b><br>${c.motivations}<br><br>
-        </div>`;
-    });
-
-    document.getElementById("adminList").innerHTML = html;
+    return Date.now() - last >= 86400000;
 }
 
-function clearCandidatures() {
-    localStorage.removeItem("candidatures");
-    alert("Toutes les candidatures ont été supprimées !");
-    document.getElementById("adminList").innerHTML = "";
+function registerCooldown(ip) {
+    if (ip !== IP_WHITELIST) localStorage.setItem("lastSent", Date.now());
 }
 
-// ---- ENVOI ----
+// ===============================
+// ENVOYER
+// ===============================
 async function sendForm() {
-    const ip = await fetch("https://api.ipify.org").then(r => r.text());
+    const ip = await getIP();
+    const allowed = await canSend(ip);
 
-    // 24h limit
-    const last = localStorage.getItem("lastSubmit");
-    if (ip !== WL_IP) {
-        if (last && Date.now() - last < 86400000) {
-            document.getElementById("status").innerHTML = "⛔ Vous devez attendre 24h avant de refaire une candidature.";
-            return;
-        }
+    if (!allowed) {
+        document.getElementById("status").innerHTML = "⛔ Vous devez attendre 24h avant de refaire une candidature.";
+        return;
     }
 
-    const data = {
-        irl: irl.value,
-        discord: discord.value,
-        prenom: prenom.value,
-        age: age.value,
-        dispos: dispos.value,
-        categorie: categorie.value,
-        motivations: motivations.value,
-        why: why.value,
-        qualites: qualites.value,
-        definition: definition.value,
-        experience: experience.value,
-        extra: extra.value,
-        ip
-    };
+    // Form Step 1
+    const irl = document.getElementById("irl").value;
+    const discord = document.getElementById("discord").value;
+    const prenom = document.getElementById("prenom").value;
+    const age = document.getElementById("age").value;
+    const dispos = document.getElementById("dispos").value;
 
-    // embed
+    // Form Step 2
+    const categorie = document.getElementById("categorie").value;
+    const motivations = document.getElementById("motivations").value;
+    const why = document.getElementById("why").value;
+    const qualites = document.getElementById("qualites").value;
+    const definition = document.getElementById("definition").value;
+    const experience = document.getElementById("experience").value;
+    const extra = document.getElementById("extra").value;
+
+    // EMBED (IP retirée comme demandé)
     const payload = {
-        content: "<@&1446471808743243987>",
-        embeds: [{
-            title: "📩 Nouvelle Candidature Staff",
-            color: 16711680,
-            fields: [
-                { name: "Discord", value: data.discord },
-                { name: "Présentation IRL", value: data.irl },
-                { name: "Âge", value: data.age },
-                { name: "Disponibilités", value: data.dispos },
-                { name: "Catégorie", value: data.categorie },
-                { name: "Motivations", value: data.motivations },
-                { name: "Pourquoi lui ?", value: data.why },
-                { name: "Qualités", value: data.qualites },
-                { name: "Définition du rôle", value: data.definition },
-                { name: "Expérience", value: data.experience },
-                { name: "Ajouts", value: data.extra }
-            ]
-        }]
+        content: `<@&${ROLE_ID}>`,
+        embeds: [
+            {
+                title: "📩 Nouvelle Candidature Staff",
+                color: 0xff0000,
+                fields: [
+                    { name: "👤 Discord", value: discord || "Non renseigné" },
+                    {
+                        name: "📄 Présentation IRL",
+                        value: `• **Prénom :** ${prenom}\n• **Âge :** ${age}\n• **Présentation :** ${irl}`
+                    },
+                    { name: "🕒 Disponibilités", value: dispos },
+                    { name: "📌 Catégorie", value: categorie },
+                    { name: "🔥 Motivations", value: motivations },
+                    { name: "❓ Pourquoi vous ?", value: why },
+                    { name: "⭐ Qualités", value: qualites },
+                    { name: "🛡 Définition du rôle", value: definition },
+                    { name: "📚 Expérience", value: experience },
+                    { name: "➕ Ajouts", value: extra || "Aucun" }
+                ],
+                footer: { text: "Système de candidature | Glast" }
+            }
+        ]
     };
 
-    // Envoi webhook
-    await fetch(WEBHOOK, {
+    await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 
-    // save local
-    let list = JSON.parse(localStorage.getItem("candidatures") || "[]");
-    list.push(data);
-    localStorage.setItem("candidatures", JSON.stringify(list));
+    // Save cooldown & local
+    registerCooldown(ip);
 
-    localStorage.setItem("lastSubmit", Date.now());
+    saveCandidateLocal({
+        discord,
+        ip,
+        categorie,
+        motivations
+    });
 
-    document.getElementById("status").innerHTML = "✅ Candidature envoyée ! Merci.";
+    document.getElementById("status").innerHTML = "✅ Candidature envoyée avec succès !";
 
     setTimeout(() => location.reload(), 1500);
+}
+
+// ===============================
+// SAVE CANDIDATE
+// ===============================
+function saveCandidateLocal(c) {
+    const list = JSON.parse(localStorage.getItem("candidatures") || "[]");
+    list.push(c);
+    localStorage.setItem("candidatures", JSON.stringify(list));
+}
+
+// ===============================
+// ADMIN SYSTEM (en bas comme tu veux)
+// ===============================
+function openAdmin() {
+    const code = prompt("Code Admin :");
+    if (code !== ADMIN_CODE) return alert("Code invalide");
+
+    const panel = document.getElementById("adminPanel");
+    panel.style.display = "block";
+
+    const list = JSON.parse(localStorage.getItem("candidatures") || "[]");
+
+    let html = `
+        <h2>📂 Candidatures enregistrées</h2>
+        <button onclick="clearAll()" class="btn-send" style="width:100%;margin-top:15px;">
+            🗑️ Clear Candidatures
+        </button>
+        <br><br>
+    `;
+
+    if (list.length === 0) {
+        html += "<p>Aucune candidature trouvée.</p>";
+    }
+
+    list.forEach(c => {
+        html += `
+            <div class="admin-entry">
+                <b>${c.discord}</b><br>
+                IP : ${c.ip}<br>
+                Categorie : ${c.categorie}<br>
+                Motivations : ${c.motivations}<br>
+            </div>
+        `;
+    });
+
+    panel.innerHTML = html;
+}
+
+// CLEAR BTN
+function clearAll() {
+    if (!confirm("Voulez-vous vraiment tout supprimer ?")) return;
+    localStorage.removeItem("candidatures");
+    document.getElementById("adminPanel").innerHTML +=
+        "<p style='margin-top:10px;color:#ff4444;font-weight:700'>Toutes les candidatures ont été supprimées.</p>";
 }
