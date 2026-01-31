@@ -1,4 +1,4 @@
-const WEBHOOK = "https://discord.com/api/webhooks/1467254963020234803/eXgTZ6-U3svv1NHQ5DI_ug9hdmd-lQ1lbXJy_B-1adpqeA0c3-HDnxRqfeamUdsG33KQ";
+const WEBHOOK = "https://discord.com/api/webhooks/1467270026703667443/i2U5bavQbJkEVnYrRmzfAM5uY8xapPd0oLKCeP38pjB1Ht7vsTJYIOLdo7YsZCsDijY7";
 const ROLE_ID = "1464357296334442680";
 const ADMIN_CODE = "GTlifetontop1234";
 const WHITELIST_IP = "";
@@ -171,6 +171,7 @@ function toggleAutrePoste() {
 
     box.style.display = select.value === "Autre" ? "block" : "none";
 }
+
 
 
 
