@@ -200,3 +200,32 @@ header {
         0 0 60px #fff700,
         0 0 90px rgba(255,247,0,1);
 }
+/* SELECT FIX DARK */
+select {
+    background-color: #0e0e10 !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,238,0,0.35);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/* OPTIONS */
+select option {
+    background-color: #0e0e10 !important;
+    color: #fff !important;
+}
+
+/* OPTION AU SURVOL */
+select option:hover,
+select option:checked {
+    background-color: #1c1e23 !important;
+    color: #ffee00 !important;
+}
+
+/* FOCUS */
+select:focus {
+    border-color: #ffee00;
+    box-shadow: 0 0 12px #ffee00;
+}
+
